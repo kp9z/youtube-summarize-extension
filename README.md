@@ -1,5 +1,7 @@
 # YouTube Video Summarizer Chrome Extension
 
+> 🚀 Bring your own key, get instant insights!
+
 A modern Chrome extension that helps you quickly summarize YouTube videos and extract transcripts using AI.
 
 ## Features
@@ -112,4 +114,40 @@ MIT License - Feel free to use this project for your own purposes.
 If you find this extension useful, consider:
 - Starring the repository
 - Sharing it with others
-- Contributing to its development 
+- Contributing to its development
+
+## Legal & Privacy
+
+### Privacy Policy
+- This extension does not collect, store, or transmit any personal data
+- All processing happens locally in your browser
+- Your OpenAI API key is stored securely in Chrome's sync storage
+- No data is sent to any servers except OpenAI's API
+
+### Terms of Service
+By using this extension, you agree to:
+1. Comply with YouTube's Terms of Service
+2. Use OpenAI's API in accordance with their terms
+3. Not use this extension for bulk data extraction
+4. Not redistribute YouTube content or OpenAI responses
+5. Use the extension for personal, non-commercial purposes
+
+### API Usage
+- This extension requires your own OpenAI API key
+- You are responsible for your API key usage and associated costs
+- The extension does not store or share your API key
+- API usage is subject to OpenAI's terms and pricing
+
+### YouTube Content
+- This extension interacts with YouTube's interface to extract transcripts
+- All content remains the property of YouTube and its content creators
+- The extension is for personal use and educational purposes only
+- No content is stored or redistributed
+
+### Disclaimer
+This extension is provided "as is" without warranty of any kind. The developers are not responsible for:
+- Any misuse of the extension
+- API key security
+- Content accuracy
+- Service availability
+- Any damages or losses incurred 
