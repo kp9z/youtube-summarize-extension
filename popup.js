@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const summarizeBtn = document.getElementById('summarizeBtn');
   const transcriptBtn = document.getElementById('transcriptBtn');
   const copyBtn = document.getElementById('copyBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const closeSettingsBtn = document.getElementById('closeSettings');
+  const settingsModal = document.getElementById('settingsModal');
   const summaryDiv = document.getElementById('summary');
   const apiKeyInput = document.getElementById('apiKey');
   const loadingDiv = document.getElementById('loading');
@@ -16,6 +19,22 @@ document.addEventListener('DOMContentLoaded', function() {
   // Save API key when changed
   apiKeyInput.addEventListener('change', function() {
     chrome.storage.sync.set({ openaiApiKey: apiKeyInput.value });
+  });
+
+  // Settings modal handlers
+  settingsBtn.addEventListener('click', () => {
+    settingsModal.style.display = 'block';
+  });
+
+  closeSettingsBtn.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+
+  // Close modal when clicking outside
+  window.addEventListener('click', (event) => {
+    if (event.target === settingsModal) {
+      settingsModal.style.display = 'none';
+    }
   });
 
   // Handle copy button click
@@ -46,6 +65,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function tryAction(tab, action, retryCount = 0) {
     try {
+      const apiKey = apiKeyInput.value.trim();
+      if (!apiKey) {
+        summaryDiv.textContent = 'Please enter your OpenAI API key in settings first.';
+        copyBtn.style.display = 'none';
+        return;
+      }
+
       // Check if we're on YouTube
       if (!tab.url.includes('youtube.com/watch')) {
         summaryDiv.textContent = 'Please navigate to a YouTube video first.';
@@ -69,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Send message to content script
       chrome.tabs.sendMessage(tab.id, { 
         action: action,
-        apiKey: apiKeyInput.value.trim()
+        apiKey: apiKey
       }, (response) => {
         loadingDiv.style.display = 'none';
         summarizeBtn.disabled = false;

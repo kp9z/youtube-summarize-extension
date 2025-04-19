@@ -3,26 +3,149 @@
 <head>
   <title>YouTube Video Summarizer</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body {
-      width: 300px;
-      padding: 10px;
-      font-family: Arial, sans-serif;
+    :root {
+      --primary: #2563eb;
+      --secondary: #10b981;
+      --background: #ffffff;
+      --surface: #f8fafc;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 340px;
+      padding: 16px;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+    }
+
     .container {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 16px;
     }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .settings-button {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .settings-button:hover {
+      color: var(--text);
+      background-color: var(--surface);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: var(--background);
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px;
+    }
+
+    .api-key-container {
+      margin-bottom: 16px;
+    }
+
+    .api-key-container label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .api-key-container input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: var(--surface);
+      transition: all 0.2s;
+    }
+
+    .api-key-container input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
     .button-container {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
+
     button {
-      padding: 8px 16px;
+      padding: 10px 16px;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
       flex: 1;
       display: flex;
@@ -30,70 +153,108 @@
       justify-content: center;
       gap: 8px;
       font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
     }
+
     button:hover {
-      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
     }
+
+    button:active {
+      transform: translateY(0);
+    }
+
     button:disabled {
-      background-color: #cccccc;
+      background-color: #94a3b8;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
+
     #summarizeBtn {
-      background-color: #4285f4;
+      background-color: var(--primary);
     }
+
     #transcriptBtn {
-      background-color: #34a853;
+      background-color: var(--secondary);
     }
+
     .copy-button {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 4px 8px;
+      top: 12px;
+      right: 12px;
+      padding: 6px 10px;
       font-size: 12px;
-      background-color: #666;
+      background-color: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
     }
+
     .copy-button:hover {
-      background-color: #555;
+      background-color: var(--background);
+      color: var(--text);
     }
+
     .summary-container {
       position: relative;
-      margin-top: 10px;
+      margin-top: 8px;
+      background-color: var(--surface);
+      border-radius: 8px;
+      border: 1px solid var(--border);
     }
+
     #summary {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      min-height: 100px;
+      padding: 16px;
+      min-height: 120px;
       white-space: pre-wrap;
       max-height: 400px;
       overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text);
     }
-    .api-key-container {
-      margin-bottom: 10px;
-    }
-    .api-key-container input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      margin-top: 5px;
-    }
+
     .loading {
       display: none;
       text-align: center;
-      margin: 10px 0;
+      margin: 12px 0;
+      color: var(--text-secondary);
+      font-size: 14px;
     }
+
     .button-icon {
       font-size: 16px;
+    }
+
+    /* Custom scrollbar */
+    #summary::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #summary::-webkit-scrollbar-track {
+      background: var(--surface);
+    }
+
+    #summary::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    #summary::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>YouTube Video Summarizer</h2>
-    <div class="api-key-container">
-      <label for="apiKey">OpenAI API Key:</label>
-      <input type="password" id="apiKey" placeholder="Enter your OpenAI API key">
+    <div class="header">
+      <h2>YouTube Video Summarizer</h2>
+      <button class="settings-button" id="settingsBtn">
+        <i class="fas fa-cog"></i>
+      </button>
     </div>
     <div class="button-container">
       <button id="summarizeBtn">
@@ -105,7 +266,10 @@
         Get Transcript
       </button>
     </div>
-    <div class="loading" id="loading">Loading...</div>
+    <div class="loading" id="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      Loading...
+    </div>
     <div class="summary-container">
       <button class="copy-button" id="copyBtn" style="display: none;">
         <i class="fas fa-copy"></i>
@@ -114,6 +278,23 @@
       <div id="summary"></div>
     </div>
   </div>
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Settings</h3>
+        <button class="close-button" id="closeSettings">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="api-key-container">
+        <label for="apiKey">OpenAI API Key</label>
+        <input type="password" id="apiKey" placeholder="Enter your OpenAI API key">
+      </div>
+    </div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html> 
