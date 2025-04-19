@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>YouTube Video Summarizer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     body {
       width: 300px;
@@ -13,28 +14,59 @@
       flex-direction: column;
       gap: 10px;
     }
+    .button-container {
+      display: flex;
+      gap: 10px;
+    }
     button {
       padding: 8px 16px;
-      background-color: #4285f4;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
     }
     button:hover {
-      background-color: #3367d6;
+      opacity: 0.9;
     }
     button:disabled {
       background-color: #cccccc;
       cursor: not-allowed;
     }
-    #summary {
+    #summarizeBtn {
+      background-color: #4285f4;
+    }
+    #transcriptBtn {
+      background-color: #34a853;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 8px;
+      font-size: 12px;
+      background-color: #666;
+    }
+    .copy-button:hover {
+      background-color: #555;
+    }
+    .summary-container {
+      position: relative;
       margin-top: 10px;
+    }
+    #summary {
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 4px;
       min-height: 100px;
       white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
     }
     .api-key-container {
       margin-bottom: 10px;
@@ -51,6 +83,9 @@
       text-align: center;
       margin: 10px 0;
     }
+    .button-icon {
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -60,9 +95,24 @@
       <label for="apiKey">OpenAI API Key:</label>
       <input type="password" id="apiKey" placeholder="Enter your OpenAI API key">
     </div>
-    <button id="summarizeBtn">Summarize Current Video</button>
-    <div class="loading" id="loading">Generating summary...</div>
-    <div id="summary"></div>
+    <div class="button-container">
+      <button id="summarizeBtn">
+        <i class="fas fa-robot button-icon"></i>
+        Summarize Video
+      </button>
+      <button id="transcriptBtn">
+        <i class="fas fa-file-alt button-icon"></i>
+        Get Transcript
+      </button>
+    </div>
+    <div class="loading" id="loading">Loading...</div>
+    <div class="summary-container">
+      <button class="copy-button" id="copyBtn" style="display: none;">
+        <i class="fas fa-copy"></i>
+        Copy
+      </button>
+      <div id="summary"></div>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>

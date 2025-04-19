@@ -9,6 +9,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ error: error.message });
       });
     return true; // Required for async response
+  } else if (request.action === 'transcript') {
+    getVideoTranscript()
+      .then(transcript => {
+        sendResponse({ summary: transcript });
+      })
+      .catch(error => {
+        sendResponse({ error: error.message });
+      });
+    return true; // Required for async response
   }
 });
 
@@ -38,7 +47,7 @@ async function summarizeVideo(apiKey) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -50,7 +59,7 @@ async function summarizeVideo(apiKey) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 500
+        max_tokens: 1000
       })
     });
 
@@ -70,27 +79,51 @@ async function summarizeVideo(apiKey) {
 
 async function getVideoTranscript() {
   try {
-    // Click the "..." menu button
-    const moreButton = document.querySelector('button[aria-label="More actions"]');
-    if (!moreButton) return 'Transcript not available.';
+    // First try to find the transcript button directly
+    const transcriptButton = document.querySelector('button[aria-label="Show transcript"]') ||
+                           document.querySelector('button[aria-label="Open transcript"]');
     
-    moreButton.click();
+    if (transcriptButton) {
+      transcriptButton.click();
+    } else {
+      // If direct button not found, try the "..." menu approach
+      const moreButton = document.querySelector('button[aria-label="More actions"]');
+      if (!moreButton) return 'Transcript not available.';
+      
+      moreButton.click();
+      
+      // Wait for the menu to appear
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Try different possible transcript button labels
+      const transcriptButton = Array.from(document.querySelectorAll('ytd-menu-service-item-renderer'))
+        .find(el => el.textContent.match(/show transcript|open transcript/i));
+      
+      if (!transcriptButton) return 'Transcript not available.';
+      
+      transcriptButton.click();
+    }
     
-    // Wait for the menu to appear and click "Show transcript"
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const transcriptButton = Array.from(document.querySelectorAll('ytd-menu-service-item-renderer'))
-      .find(el => el.textContent.includes('Show transcript'));
-    
-    if (!transcriptButton) return 'Transcript not available.';
-    
-    transcriptButton.click();
-    
-    // Wait for transcript to load and extract text
+    // Wait for transcript panel to appear
     await new Promise(resolve => setTimeout(resolve, 1000));
-    const transcriptElements = document.querySelectorAll('ytd-transcript-segment-renderer');
-    const transcriptText = Array.from(transcriptElements)
-      .map(el => el.textContent.trim())
-      .join(' ');
+    
+    // Try different possible transcript container selectors
+    const transcriptContainer = document.querySelector('ytd-transcript-renderer') ||
+                              document.querySelector('ytd-transcript-body-renderer');
+    
+    if (!transcriptContainer) return 'Transcript not available.';
+    
+    // Extract transcript segments with timestamps
+    const segments = Array.from(transcriptContainer.querySelectorAll('ytd-transcript-segment-renderer'));
+    if (segments.length === 0) return 'Transcript not available.';
+    
+    const transcriptText = segments
+      .map(segment => {
+        const time = segment.querySelector('.segment-timestamp')?.textContent.trim() || '';
+        const text = segment.querySelector('.segment-text')?.textContent.trim() || '';
+        return `${time} ${text}`;
+      })
+      .join('\n');
     
     return transcriptText || 'Transcript not available.';
   } catch (error) {
