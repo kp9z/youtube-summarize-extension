@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const summarizeBtn = document.getElementById('summarizeBtn');
   const transcriptBtn = document.getElementById('transcriptBtn');
+  const summarizeBtn = document.getElementById('summarizeBtn');
   const copyBtn = document.getElementById('copyBtn');
-  const settingsBtn = document.getElementById('settingsBtn');
-  const closeSettingsBtn = document.getElementById('closeSettings');
-  const settingsModal = document.getElementById('settingsModal');
   const summaryDiv = document.getElementById('summary');
-  const apiKeyInput = document.getElementById('apiKey');
   const loadingDiv = document.getElementById('loading');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsModal = document.getElementById('settingsModal');
+  const closeSettings = document.getElementById('closeSettings');
+  const apiKeyInput = document.getElementById('apiKey');
 
   // Load saved API key
   chrome.storage.sync.get(['openaiApiKey'], function(result) {
@@ -16,34 +16,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Save API key when changed
-  apiKeyInput.addEventListener('change', function() {
-    chrome.storage.sync.set({ openaiApiKey: apiKeyInput.value });
-  });
-
   // Settings modal handlers
   settingsBtn.addEventListener('click', () => {
     settingsModal.style.display = 'block';
   });
 
-  closeSettingsBtn.addEventListener('click', () => {
+  closeSettings.addEventListener('click', () => {
     settingsModal.style.display = 'none';
   });
 
-  // Close modal when clicking outside
   window.addEventListener('click', (event) => {
     if (event.target === settingsModal) {
       settingsModal.style.display = 'none';
     }
   });
 
+  // Save API key when changed
+  apiKeyInput.addEventListener('change', () => {
+    chrome.storage.sync.set({
+      openaiApiKey: apiKeyInput.value
+    });
+  });
+
   // Handle copy button click
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(summaryDiv.textContent);
-      copyBtn.textContent = 'Copied!';
+      copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
       setTimeout(() => {
-        copyBtn.textContent = 'Copy';
+        copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
       }, 2000);
     } catch (error) {
       console.error('Failed to copy text:', error);
@@ -65,13 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function tryAction(tab, action, retryCount = 0) {
     try {
-      const apiKey = apiKeyInput.value.trim();
-      if (!apiKey) {
-        summaryDiv.textContent = 'Please enter your OpenAI API key in settings first.';
-        copyBtn.style.display = 'none';
-        return;
-      }
-
       // Check if we're on YouTube
       if (!tab.url.includes('youtube.com/watch')) {
         summaryDiv.textContent = 'Please navigate to a YouTube video first.';
@@ -81,11 +75,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Show loading state
       loadingDiv.style.display = 'block';
-      loadingDiv.textContent = action === 'summarize' ? 'Generating summary...' : 'Getting transcript...';
+      loadingDiv.textContent = action === 'transcript' ? 'Getting transcript...' : 'Generating summary...';
       summaryDiv.textContent = '';
       copyBtn.style.display = 'none';
-      summarizeBtn.disabled = true;
       transcriptBtn.disabled = true;
+      summarizeBtn.disabled = true;
+
+      // Check for API key if summarizing
+      if (action === 'summarize') {
+        const apiKey = apiKeyInput.value;
+        if (!apiKey) {
+          loadingDiv.style.display = 'none';
+          transcriptBtn.disabled = false;
+          summarizeBtn.disabled = false;
+          summaryDiv.textContent = 'Please enter your OpenAI API key in settings first.';
+          settingsModal.style.display = 'block';
+          return;
+        }
+      }
 
       // Try to inject content script if needed
       if (retryCount === 0) {
@@ -95,11 +102,11 @@ document.addEventListener('DOMContentLoaded', function() {
       // Send message to content script
       chrome.tabs.sendMessage(tab.id, { 
         action: action,
-        apiKey: apiKey
+        apiKey: action === 'summarize' ? apiKeyInput.value : null
       }, (response) => {
         loadingDiv.style.display = 'none';
-        summarizeBtn.disabled = false;
         transcriptBtn.disabled = false;
+        summarizeBtn.disabled = false;
 
         if (chrome.runtime.lastError) {
           if (retryCount < 2) {
@@ -119,26 +126,28 @@ document.addEventListener('DOMContentLoaded', function() {
           summaryDiv.textContent = 'Error: ' + response.error;
           copyBtn.style.display = 'none';
         } else {
-          summaryDiv.textContent = 'No data available. Please try again.';
+          summaryDiv.textContent = action === 'transcript' ? 
+            'No transcript available. Please try again.' : 
+            'Failed to generate summary. Please try again.';
           copyBtn.style.display = 'none';
         }
       });
     } catch (error) {
       loadingDiv.style.display = 'none';
-      summarizeBtn.disabled = false;
       transcriptBtn.disabled = false;
+      summarizeBtn.disabled = false;
       summaryDiv.textContent = 'Error: ' + error.message;
       copyBtn.style.display = 'none';
     }
   }
 
-  summarizeBtn.addEventListener('click', async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    await tryAction(tab, 'summarize');
-  });
-
   transcriptBtn.addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     await tryAction(tab, 'transcript');
+  });
+
+  summarizeBtn.addEventListener('click', async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    await tryAction(tab, 'summarize');
   });
 }); 

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>YouTube Video Summarizer</title>
+  <title>YouTube Transcript & Summary</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #2563eb;
-      --secondary: #10b981;
+      --primary: #10b981;
+      --secondary: #2563eb;
       --background: #ffffff;
       --surface: #f8fafc;
       --text: #1e293b;
@@ -48,21 +48,109 @@
       color: var(--text);
     }
 
-    .settings-button {
-      background: none;
+    .button-container {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      padding: 10px 16px;
+      color: white;
       border: none;
-      color: var(--text-secondary);
+      border-radius: 8px;
       cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
       transition: all 0.2s;
     }
 
-    .settings-button:hover {
-      color: var(--text);
-      background-color: var(--surface);
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
     }
 
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    #transcriptBtn {
+      background-color: var(--primary);
+    }
+
+    #summarizeBtn {
+      background-color: var(--secondary);
+    }
+
+    .copy-button {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 6px 10px;
+      font-size: 12px;
+      background-color: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .copy-button:hover {
+      background-color: var(--background);
+      color: var(--text);
+    }
+
+    #loading {
+      display: none;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin: 12px 0;
+    }
+
+    #summary {
+      position: relative;
+      background-color: var(--surface);
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      margin-top: 12px;
+    }
+
+    /* Custom scrollbar */
+    #summary::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #summary::-webkit-scrollbar-track {
+      background: var(--surface);
+      border-radius: 4px;
+    }
+
+    #summary::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    #summary::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* Settings Modal */
     .modal {
       display: none;
       position: fixed;
@@ -136,146 +224,50 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
-    .button-container {
-      display: flex;
-      gap: 12px;
-    }
-
-    button {
-      padding: 10px 16px;
-      color: white;
+    .settings-button {
+      background: none;
       border: none;
-      border-radius: 8px;
+      color: var(--text-secondary);
       cursor: pointer;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 500;
+      padding: 4px;
+      border-radius: 4px;
       transition: all 0.2s;
     }
 
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: var(--shadow);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    button:disabled {
-      background-color: #94a3b8;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    #summarizeBtn {
-      background-color: var(--primary);
-    }
-
-    #transcriptBtn {
-      background-color: var(--secondary);
-    }
-
-    .copy-button {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      padding: 6px 10px;
-      font-size: 12px;
-      background-color: var(--surface);
-      color: var(--text-secondary);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-    }
-
-    .copy-button:hover {
-      background-color: var(--background);
+    .settings-button:hover {
       color: var(--text);
-    }
-
-    .summary-container {
-      position: relative;
-      margin-top: 8px;
       background-color: var(--surface);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    #summary {
-      padding: 16px;
-      min-height: 120px;
-      white-space: pre-wrap;
-      max-height: 400px;
-      overflow-y: auto;
-      font-size: 14px;
-      line-height: 1.5;
-      color: var(--text);
-    }
-
-    .loading {
-      display: none;
-      text-align: center;
-      margin: 12px 0;
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
-
-    .button-icon {
-      font-size: 16px;
-    }
-
-    /* Custom scrollbar */
-    #summary::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    #summary::-webkit-scrollbar-track {
-      background: var(--surface);
-    }
-
-    #summary::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 3px;
-    }
-
-    #summary::-webkit-scrollbar-thumb:hover {
-      background: var(--text-secondary);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h2>YouTube Video Summarizer</h2>
+      <h2>YouTube Transcript & Summary</h2>
       <button class="settings-button" id="settingsBtn">
         <i class="fas fa-cog"></i>
       </button>
     </div>
+    
     <div class="button-container">
-      <button id="summarizeBtn">
-        <i class="fas fa-robot button-icon"></i>
-        Summarize Video
-      </button>
       <button id="transcriptBtn">
-        <i class="fas fa-file-alt button-icon"></i>
+        <i class="fas fa-closed-captioning"></i>
         Get Transcript
       </button>
+      <button id="summarizeBtn">
+        <i class="fas fa-robot"></i>
+        Summarize
+      </button>
     </div>
-    <div class="loading" id="loading">
-      <i class="fas fa-spinner fa-spin"></i>
-      Loading...
-    </div>
-    <div class="summary-container">
-      <button class="copy-button" id="copyBtn" style="display: none;">
+
+    <div id="loading">Getting transcript...</div>
+    
+    <div style="position: relative;">
+      <div id="summary"></div>
+      <button id="copyBtn" class="copy-button" style="display: none;">
         <i class="fas fa-copy"></i>
         Copy
       </button>
-      <div id="summary"></div>
     </div>
   </div>
 
