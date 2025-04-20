@@ -205,6 +205,49 @@ function getOrCreateResultContainer() {
 
 async function getVideoTranscript() {
   try {
+    // Get video metadata with updated selector for title
+    const videoTitle = document.querySelector('#title yt-formatted-string.style-scope.ytd-watch-metadata')?.textContent?.trim() ||
+                      document.querySelector('h1.title')?.textContent?.trim() ||
+                      'Unknown Title';
+    
+    // Updated channel name selector to handle different YouTube DOM structures
+    const channelName = document.querySelector('ytd-channel-name yt-formatted-string#text a')?.textContent?.trim() ||
+                       document.querySelector('ytd-channel-name yt-formatted-string#text')?.textContent?.trim() ||
+                       document.querySelector('#owner-name a')?.textContent?.trim() ||
+                       'Unknown Channel';
+
+    const descriptionElement = document.querySelector('#description-inline-expander');
+    
+    // Clean up description text
+    let videoDescription = '';
+    if (descriptionElement) {
+      // Get the raw description text
+      const rawDescription = descriptionElement.textContent?.trim() || '';
+      
+      // Split by newlines and clean up
+      let lines = rawDescription.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        // Remove UI elements and common YouTube text
+        .filter(line => !line.match(/^(Show (more|less)|View all|About|Videos|Follow along|...more|Subscribe|Chapters?|Contents?)/i))
+        // Remove lines that are just timestamps
+        .filter(line => !line.match(/^\d{1,2}:\d{2}(:\d{2})?$/))
+        // Remove lines that start with timestamps and chapter titles
+        .filter(line => !line.match(/^\d{1,2}:\d{2}(:\d{2})?\s*-?\s*.+/i))
+        // Remove social media links and common UI elements
+        .filter(line => !line.match(/^(Instagram|Twitter|Facebook|TikTok|Show transcript)/i))
+        // Remove subscriber count
+        .filter(line => !line.match(/^\d+(\.\d+)?[KMB]? subscribers?$/i));
+
+      // Remove duplicate lines
+      lines = [...new Set(lines)];
+      
+      // Join lines and clean up multiple newlines
+      videoDescription = lines.join('\n')
+        .replace(/\n{3,}/g, '\n\n')  // Replace 3 or more newlines with 2
+        .trim();
+    }
+
     // Find and click the transcript button
     let transcriptButton = Array.from(document.querySelectorAll('button'))
       .find(button => button.textContent.toLowerCase().includes('show transcript') || 
@@ -257,7 +300,27 @@ async function getVideoTranscript() {
       }
     });
 
-    return transcriptText.trim();
+    // Get chapters if available
+    let chaptersSection = '';
+    const chapters = Array.from(document.querySelectorAll('ytd-chapter-renderer'))
+      .map(chapter => {
+        const timestamp = chapter.querySelector('.timestamp')?.textContent?.trim();
+        const title = chapter.querySelector('.chapter-title')?.textContent?.trim();
+        if (timestamp && title) {
+          return `${timestamp} - ${title}`;
+        }
+        return null;
+      })
+      .filter(chapter => chapter !== null);
+
+    if (chapters.length > 0) {
+      chaptersSection = '\nChapters:\n' + chapters.join('\n') + '\n';
+    }
+
+    // Format the complete output with metadata
+    const completeOutput = `Video Title: ${videoTitle}\n\nChannel: ${channelName}\n\nDescription:\n${videoDescription}${chaptersSection}\n\nTranscript:\n${transcriptText.trim()}`;
+
+    return completeOutput;
   } catch (error) {
     throw new Error(`Failed to get transcript: ${error.message}`);
   }
