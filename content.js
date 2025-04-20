@@ -1,3 +1,8 @@
+// Debug logging helper - moved to top and made into a const to avoid redeclaration
+const debug = (message) => {
+  console.log(`[YouTube Summarizer] ${message}`);
+};
+
 // Listen for messages from the popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'transcript') {
@@ -6,6 +11,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ summary: transcript });
       })
       .catch(error => {
+        debug('Error getting transcript: ' + error.message);
         sendResponse({ error: error.message });
       });
     return true;
@@ -16,16 +22,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ summary: summary });
       })
       .catch(error => {
+        debug('Error summarizing transcript: ' + error.message);
         sendResponse({ error: error.message });
       });
     return true;
   }
 });
-
-// Debug logging helper
-const debug = (message) => {
-  console.log(`[YouTube Summarizer] ${message}`);
-};
 
 // Check if we're on a YouTube video page
 function isYouTubeVideoPage() {
@@ -136,27 +138,55 @@ async function injectButtons() {
   debug('Button injected successfully');
 }
 
-// Handle page navigation
-let currentVideoId = '';
-
-function checkForNewVideo() {
-  if (!isYouTubeVideoPage()) return;
+// Wait for YouTube page to be ready
+const waitForYouTubeLoad = async () => {
+  const MAX_ATTEMPTS = 30;
+  const DELAY = 1000;
   
-  const videoId = new URLSearchParams(window.location.search).get('v');
-  if (videoId && videoId !== currentVideoId) {
-    currentVideoId = videoId;
-    debug('New video detected: ' + videoId);
-    setTimeout(injectButtons, 1000);
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    if (document.querySelector('ytd-watch-metadata')) {
+      return true;
+    }
+    await new Promise(resolve => setTimeout(resolve, DELAY));
   }
-}
+  throw new Error('YouTube page failed to load required elements');
+};
 
-// Watch for URL changes
-setInterval(checkForNewVideo, 1000);
+// Initialize the extension
+const initializeExtension = async () => {
+  try {
+    await waitForYouTubeLoad();
+    debug('YouTube page loaded, initializing extension');
+    
+    // Initial injection
+    if (isYouTubeVideoPage()) {
+      debug('Starting initial injection');
+      setTimeout(injectButtons, 1500);
+    }
 
-// Initial injection
-if (isYouTubeVideoPage()) {
-  debug('Starting initial injection');
-  setTimeout(injectButtons, 1500);
+    // Watch for URL changes
+    let currentVideoId = '';
+    setInterval(() => {
+      if (!isYouTubeVideoPage()) return;
+      
+      const videoId = new URLSearchParams(window.location.search).get('v');
+      if (videoId && videoId !== currentVideoId) {
+        currentVideoId = videoId;
+        debug('New video detected: ' + videoId);
+        setTimeout(injectButtons, 1000);
+      }
+    }, 1000);
+
+  } catch (error) {
+    debug('Failed to initialize extension: ' + error.message);
+  }
+};
+
+// Start initialization when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeExtension);
+} else {
+  initializeExtension();
 }
 
 // Function to display summary in a nice format
