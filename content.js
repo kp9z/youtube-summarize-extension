@@ -216,8 +216,24 @@ async function getVideoTranscript() {
                        document.querySelector('#owner-name a')?.textContent?.trim() ||
                        'Unknown Channel';
 
+    // Get base video URL without any parameters
+    const videoId = new URLSearchParams(window.location.search).get('v');
+    const baseVideoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
     const descriptionElement = document.querySelector('#description-inline-expander');
     
+    // Helper function to convert timestamp to seconds
+    const timestampToSeconds = (timestamp) => {
+      const parts = timestamp.split(':').map(Number);
+      if (parts.length === 2) return parts[0] * 60 + parts[1];
+      if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      return 0;
+    };
+
+    // Instructions for LLMs on how to use timestamps
+    const instructions = `Note: To jump to specific timestamps, append "&t=Xs" to the video URL, where X is the number of seconds.
+Example: A timestamp [1:30] would be "&t=90s"\n\n`;
+
     // Clean up description text
     let videoDescription = '';
     if (descriptionElement) {
@@ -296,7 +312,8 @@ async function getVideoTranscript() {
       const timestamp = segment.querySelector('[class*="timestamp"]')?.textContent?.trim();
       const text = segment.querySelector('[class*="segment-text"]')?.textContent?.trim();
       if (timestamp && text) {
-        transcriptText += `[${timestamp}] ${text}\n`;
+        const seconds = timestampToSeconds(timestamp);
+        transcriptText += `[${timestamp}] ${text} &t=${seconds}s\n`;
       }
     });
 
@@ -307,7 +324,8 @@ async function getVideoTranscript() {
         const timestamp = chapter.querySelector('.timestamp')?.textContent?.trim();
         const title = chapter.querySelector('.chapter-title')?.textContent?.trim();
         if (timestamp && title) {
-          return `${timestamp} - ${title}`;
+          const seconds = timestampToSeconds(timestamp);
+          return `${timestamp} - ${title} &t=${seconds}s`;
         }
         return null;
       })
@@ -318,7 +336,7 @@ async function getVideoTranscript() {
     }
 
     // Format the complete output with metadata
-    const completeOutput = `Video Title: ${videoTitle}\n\nChannel: ${channelName}\n\nDescription:\n${videoDescription}${chaptersSection}\n\nTranscript:\n${transcriptText.trim()}`;
+    const completeOutput = `${instructions}Video URL: ${baseVideoUrl}\n\nVideo Title: ${videoTitle}\n\nChannel: ${channelName}\n\nDescription:\n${videoDescription}${chaptersSection}\n\nTranscript:\n${transcriptText.trim()}`;
 
     return completeOutput;
   } catch (error) {
