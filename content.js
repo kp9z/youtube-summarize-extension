@@ -261,45 +261,50 @@ async function getVideoTranscript() {
     };
 
     // Instructions for LLMs on how to use timestamps
-    const instructions = `As an expert analyst, create an insightful summary of this video that goes beyond surface-level observations. Focus on unique perspectives, counterintuitive insights, and practical applications that would be valuable to me.
+    const instructions = `Provide a structured breakdown of this video's content.
 
-For each key point, include clickable timestamp links using this format:
-[HH:MM:SS](${baseVideoUrl}&t=Xs) Point description
-where X is the timestamp in seconds.
+For all timestamps, use this clickable format:
+[HH:MM:SS](${baseVideoUrl}&t=Xs) where X is the timestamp in seconds.
+
+Structure:
+
+TL;DR:
+Two sentences summarizing the core content and main takeaway of this video.
+
+Chapter Breakdown:
+For each major section:
+
+[Timestamp] Chapter Title
+- Context: Brief introduction to what this section addresses
+- Key Points:
+  • [Timestamp] Main point or argument made
+  • [Timestamp] Supporting evidence or examples
+  • [Timestamp] Counter-arguments or alternative views (if any)
+- Technical Details:
+  • New terms or concepts explained
+  • Methodologies or processes discussed
+  • Data or research mentioned
+- Discussion:
+  • Different perspectives presented (who said what)
+  • Agreements/disagreements between speakers
+  • Resolutions or conclusions reached
 
 Example:
-[1:30](${baseVideoUrl}&t=90s) Fascinating insight about how traditional fitness wisdom is being challenged
+[00:00](${baseVideoUrl}&t=0s) The Future of AI Development
+- Context: Discussion about current AI limitations and future potential
+- Key Points:
+  • [00:45](${baseVideoUrl}&t=45s) Current AI systems struggle with common sense reasoning
+  • [02:30](${baseVideoUrl}&t=150s) Three major challenges in AI development
+  • [05:15](${baseVideoUrl}&t=315s) Proposed solutions from different research teams
+- Technical Details:
+  • Neural Networks explained: Pattern recognition systems inspired by human brain
+  • Transfer Learning: How AI applies knowledge from one task to another
+- Discussion:
+  • Google's team argues for larger models
+  • OpenAI researchers counter with efficiency-focused approach
+  • Agreement reached on need for better training data
 
-Please structure the analysis with:
-
-TL;DR (2 sentences):
-- First sentence: Capture the core message and unique value proposition of the video
-- Second sentence: Highlight the most surprising or valuable insight for me
-
-1. Core Message & Unique Value
-   - What makes this video's perspective unique?
-   - What conventional wisdom is being challenged or enhanced?
-
-2. Personalized Relevance
-   - Connect key points to potential applications in my context
-   - Highlight aspects that align with or challenge my interests
-
-3. Key Insights with Timestamps
-   - Focus on non-obvious insights
-   - Include surprising findings or unexpected connections
-   - Highlight practical implications
-
-4. Notable Quotes & Context
-   - Include impactful quotes with timestamps
-   - Explain why these quotes are significant
-   - Connect quotes to broader themes or applications
-
-5. Strategic Takeaways
-   - Actionable recommendations
-   - Potential pitfalls to avoid
-   - Long-term implications to consider
-
-Note: Analyze the transcript below for deeper patterns and insights. Video URL for reference: ${baseVideoUrl}\n\n`;
+Note: Use timestamps from the transcript to create clickable links. Video URL: ${baseVideoUrl}\n\n`;
 
     // Clean up description text
     let videoDescription = '';
