@@ -261,8 +261,45 @@ async function getVideoTranscript() {
     };
 
     // Instructions for LLMs on how to use timestamps
-    const instructions = `Note: To jump to specific timestamps, append "&t=Xs" to the video URL, where X is the number of seconds.
-Example: A timestamp [1:30] would be "&t=90s"\n\n`;
+    const instructions = `As an expert analyst, create an insightful summary of this video that goes beyond surface-level observations. Focus on unique perspectives, counterintuitive insights, and practical applications that would be valuable to me.
+
+For each key point, include clickable timestamp links using this format:
+[HH:MM:SS](${baseVideoUrl}&t=Xs) Point description
+where X is the timestamp in seconds.
+
+Example:
+[1:30](${baseVideoUrl}&t=90s) Fascinating insight about how traditional fitness wisdom is being challenged
+
+Please structure the analysis with:
+
+TL;DR (2 sentences):
+- First sentence: Capture the core message and unique value proposition of the video
+- Second sentence: Highlight the most surprising or valuable insight for me
+
+1. Core Message & Unique Value
+   - What makes this video's perspective unique?
+   - What conventional wisdom is being challenged or enhanced?
+
+2. Personalized Relevance
+   - Connect key points to potential applications in my context
+   - Highlight aspects that align with or challenge my interests
+
+3. Key Insights with Timestamps
+   - Focus on non-obvious insights
+   - Include surprising findings or unexpected connections
+   - Highlight practical implications
+
+4. Notable Quotes & Context
+   - Include impactful quotes with timestamps
+   - Explain why these quotes are significant
+   - Connect quotes to broader themes or applications
+
+5. Strategic Takeaways
+   - Actionable recommendations
+   - Potential pitfalls to avoid
+   - Long-term implications to consider
+
+Note: Analyze the transcript below for deeper patterns and insights. Video URL for reference: ${baseVideoUrl}\n\n`;
 
     // Clean up description text
     let videoDescription = '';
@@ -366,7 +403,7 @@ Example: A timestamp [1:30] would be "&t=90s"\n\n`;
     }
 
     // Format the complete output with metadata
-    const completeOutput = `${instructions}Video URL: ${baseVideoUrl}\n\nVideo Title: ${videoTitle}\n\nChannel: ${channelName}\n\nDescription:\n${videoDescription}${chaptersSection}\n\nTranscript:\n${transcriptText.trim()}`;
+    const completeOutput = `<INSTRUCTION>\n\n${instructions}</INSTRUCTION>\n\n<VIDEO METADATA>\nVideo URL: ${baseVideoUrl}\n\nVideo Title: ${videoTitle}\n\nChannel: ${channelName}\n\nDescription:\n${videoDescription}${chaptersSection}\n\n</VIDEO METADATA>\n\n<TRANSCRIPT>\n${transcriptText.trim()}\n</TRANSCRIPT>`;
 
     return completeOutput;
   } catch (error) {
