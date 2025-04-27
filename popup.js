@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
   async function tryAction(tab, action, retryCount = 0) {
     try {
       // Check if we're on YouTube
-      if (!tab.url.includes('youtube.com/watch')) {
+      if (!tab.url.includes('youtube.com/watch') && !tab.url.includes('youtube.com/live')) {
         summaryDiv.textContent = 'Please navigate to a YouTube video first.';
         copyBtn.style.display = 'none';
         return;
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
       loadingDiv.textContent = action === 'transcript' ? 'Getting transcript...' : 'Generating summary...';
       summaryDiv.textContent = '';
       copyBtn.style.display = 'none';
-      transcriptBtn.disabled = true;
+      transcriptBtn.disabled = true;a
       summarizeBtn.disabled = true;
 
       // Check for API key if summarizing

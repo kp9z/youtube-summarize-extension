@@ -31,9 +31,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Check if we're on a YouTube video page
 function isYouTubeVideoPage() {
-  return window.location.hostname === 'www.youtube.com' && 
-         window.location.pathname === '/watch' &&
-         new URLSearchParams(window.location.search).has('v');
+  if (window.location.hostname !== 'www.youtube.com') return false;
+  
+  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+
+  return (
+    (path === '/watch' && params.has('v')) || 
+    path.startsWith('/live/')
+  );
 }
 
 // Wait for element with timeout and retry
@@ -246,11 +252,16 @@ async function getVideoTranscript() {
                        document.querySelector('#owner-name a')?.textContent?.trim() ||
                        'Unknown Channel';
 
-    // Get base video URL without any parameters
-    const videoId = new URLSearchParams(window.location.search).get('v');
-    const baseVideoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-    const descriptionElement = document.querySelector('#description-inline-expander');
+    let videoId = new URLSearchParams(window.location.search).get('v');
+    if (!videoId) {
+      // For live URLs, extract from pathname
+      const pathMatch = window.location.pathname.match(/^\/live\/(.+)$/);
+      if (pathMatch) {
+        videoId = pathMatch[1];
+      }
+    }
+    const baseVideoUrl = `https://www.youtube.com/watch?v=${videoId}`;
     
     // Helper function to convert timestamp to seconds
     const timestampToSeconds = (timestamp) => {
