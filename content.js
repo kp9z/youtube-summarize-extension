@@ -317,36 +317,6 @@ Example:
 
 Note: Use timestamps from the transcript to create clickable links. Video URL: ${baseVideoUrl}\n\n`;
 
-    // Clean up description text
-    let videoDescription = '';
-    if (descriptionElement) {
-      // Get the raw description text
-      const rawDescription = descriptionElement.textContent?.trim() || '';
-      
-      // Split by newlines and clean up
-      let lines = rawDescription.split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-        // Remove UI elements and common YouTube text
-        .filter(line => !line.match(/^(Show (more|less)|View all|About|Videos|Follow along|...more|Subscribe|Chapters?|Contents?)/i))
-        // Remove lines that are just timestamps
-        .filter(line => !line.match(/^\d{1,2}:\d{2}(:\d{2})?$/))
-        // Remove lines that start with timestamps and chapter titles
-        .filter(line => !line.match(/^\d{1,2}:\d{2}(:\d{2})?\s*-?\s*.+/i))
-        // Remove social media links and common UI elements
-        .filter(line => !line.match(/^(Instagram|Twitter|Facebook|TikTok|Show transcript)/i))
-        // Remove subscriber count
-        .filter(line => !line.match(/^\d+(\.\d+)?[KMB]? subscribers?$/i));
-
-      // Remove duplicate lines
-      lines = [...new Set(lines)];
-      
-      // Join lines and clean up multiple newlines
-      videoDescription = lines.join('\n')
-        .replace(/\n{3,}/g, '\n\n')  // Replace 3 or more newlines with 2
-        .trim();
-    }
-
     // Find and click the transcript button
     let transcriptButton = Array.from(document.querySelectorAll('button'))
       .find(button => button.textContent.toLowerCase().includes('show transcript') || 
@@ -419,7 +389,7 @@ Note: Use timestamps from the transcript to create clickable links. Video URL: $
     }
 
     // Format the complete output with metadata
-    const completeOutput = `<INSTRUCTION>\n\n${instructions}</INSTRUCTION>\n\n<VIDEO METADATA>\nVideo URL: ${baseVideoUrl}\n\nVideo Title: ${videoTitle}\n\nChannel: ${channelName}\n\nDescription:\n${videoDescription}${chaptersSection}\n\n</VIDEO METADATA>\n\n<TRANSCRIPT>\n${transcriptText.trim()}\n</TRANSCRIPT>`;
+    const completeOutput = `<INSTRUCTION>\n\n${instructions}</INSTRUCTION>\n\n<VIDEO METADATA>\nVideo URL: ${baseVideoUrl}\n\nVideo Title: ${videoTitle}\n\nChannel: ${channelName}\n\n${chaptersSection}\n\n</VIDEO METADATA>\n\n<TRANSCRIPT>\n${transcriptText.trim()}\n</TRANSCRIPT>`;
 
     return completeOutput;
   } catch (error) {
