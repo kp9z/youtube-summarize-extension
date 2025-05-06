@@ -300,6 +300,10 @@ For each major section:
   • Agreements/disagreements between speakers
   • Resolutions or conclusions reached
 
+Actionable Item: 
+Most of the time, the content is very long, or clickbaity.
+After chapter detail, write some actionable bullet points and cut through the chase.
+
 Example:
 [00:00](${baseVideoUrl}&t=0s) The Future of AI Development
 - Context: Discussion about current AI limitations and future potential
